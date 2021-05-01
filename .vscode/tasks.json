@@ -1,0 +1,36 @@
+{
+    // See https://go.microsoft.com/fwlink/?LinkId=733558
+    // for the documentation about the tasks.json format
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Assemble Sargon",
+            "type": "process",
+            "command": "pasmo",
+            "args": ["--bin", "sargon.asm", "sargon.com", "sargon.symbols"],
+            "problemMatcher": [],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+        },
+        {
+            "label": "copy_sargon",
+            "type": "shell",
+            "command": "copy",
+            //"args": ["C:\\z80 playground\\source\\jed\\jed.com", "d:\\cpm\\disks\\J\\"],
+            "args": ["C:\\z80 playground\\source\\sargon-cpm\\sargon.com", "c:\\runcpm\\runcpm\\debug\\A\\0\\"],
+            "problemMatcher": [],
+            "group": "test",
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared",
+                "showReuseMessage": true,
+                "clear": true
+            }
+        },
+
+    ]
+}
