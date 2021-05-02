@@ -3834,13 +3834,13 @@ show_cursor:
 
 copyright_message:
     db 13,10
-    db '  ::::::::      :::     :::::::::   ::::::::   ::::::::  ::::    ::: ',13,10
-    db ' :+:    :+:   :+: :+:   :+:    :+: :+:    :+: :+:    :+: :+:+:   :+: ',13,10
-    db ' +:+         +:+   +:+  +:+    +:+ +:+        +:+    +:+ :+:+:+  +:+ ',13,10
-    db ' +#++:++#++ +#++:++#++: +#++:++#:  :#:        +#+    +:+ +#+ +:+ +#+ ',13,10
-    db '        +#+ +#+     +#+ +#+    +#+ +#+   +#+# +#+    +#+ +#+  +#+#+# ',13,10
-    db ' #+#    #+# #+#     #+# #+#    #+# #+#    #+# #+#    #+# #+#   #+#+# ',13,10
-    db '  ########  ###     ### ###    ###  ########   ########  ###    #### ',13,10
+    db '      ::::::::      :::     :::::::::   ::::::::   ::::::::  ::::    ::: ',13,10
+    db '     :+:    :+:   :+: :+:   :+:    :+: :+:    :+: :+:    :+: :+:+:   :+: ',13,10
+    db '     +:+         +:+   +:+  +:+    +:+ +:+        +:+    +:+ :+:+:+  +:+ ',13,10
+    db '     +#++:++#++ +#++:++#++: +#++:++#:  :#:        +#+    +:+ +#+ +:+ +#+ ',13,10
+    db '            +#+ +#+     +#+ +#+    +#+ +#+   +#+# +#+    +#+ +#+  +#+#+# ',13,10
+    db '     #+#    #+# #+#     #+# #+#    #+# #+#    #+# #+#    #+# #+#   #+#+# ',13,10
+    db '      ########  ###     ### ###    ###  ########   ########  ###    #### ',13,10
     db 13,10
     db 'Sargon is a computer chess playing program designed and coded by Dan and',13,10
     db 'Kathe Spracklen. Copyright 1978. All rights reserved. No part of this',13,10 
@@ -3848,10 +3848,7 @@ copyright_message:
     db 13,10
     db 'This version was ported to CP/M by John Squires in May 2021 specifically',13,10
     db 'for the Z80 Playground. It is based on the assembler listing found at',13,10
-    db 'github.com/billforsternz/retro-sargon. See 8bitstack.co.uk for details.',13,10
+    db 'github.com/billforsternz/retro-sargon. See 8bitStack.co.uk for details.',13,10
     db 13,10
-
-                                                                      
-                                                                      
-                                                                          db '$'
+    db '$'
                                                     
