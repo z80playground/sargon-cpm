@@ -2084,7 +2084,7 @@ KERNEL  EQU     0F0H ; $-BLBASE
 ; STANDARD MESSAGES
 ;*******************************************************
         ORG     START+1800H
-GRTTNG  DB      "WELCOME TO CHESS! CARE FOR A GAME?"
+GRTTNG  DB      "WELCOME TO SARGON CHESS! CARE FOR A GAME?"
 ANAMSG  DB      "WOULD YOU LIKE TO ANALYZE A POSITION?"
 CLRMSG  DB      "DO YOU WANT TO PLAY WHITE(w) OR BLACK(b)?"
 TITLE1  DB      "SARGON"
@@ -2228,7 +2228,9 @@ EXIT    MACRO
         ORG     START+1A00H     ; Above the move logic
 DRIVER: LD      sp,STACK        ; Set stack pointer
         call    CLRSCR          ; Blank out screen
-        PRTLIN  GRTTNG,34       ; Output greeting
+        ld      de, copyright_message
+        call    show_string_de
+        PRTLIN  GRTTNG,41       ; Output greeting
 DRIV01: CALL    CHARTR          ; Accept answer
         CARRET                  ; New line
         CP      'N'             ; Is it a 'N' ?
@@ -3829,3 +3831,27 @@ show_cursor:
     ld a, 'h'
     call print_a
     ret
+
+copyright_message:
+    db 13,10
+    db '  ::::::::      :::     :::::::::   ::::::::   ::::::::  ::::    ::: ',13,10
+    db ' :+:    :+:   :+: :+:   :+:    :+: :+:    :+: :+:    :+: :+:+:   :+: ',13,10
+    db ' +:+         +:+   +:+  +:+    +:+ +:+        +:+    +:+ :+:+:+  +:+ ',13,10
+    db ' +#++:++#++ +#++:++#++: +#++:++#:  :#:        +#+    +:+ +#+ +:+ +#+ ',13,10
+    db '        +#+ +#+     +#+ +#+    +#+ +#+   +#+# +#+    +#+ +#+  +#+#+# ',13,10
+    db ' #+#    #+# #+#     #+# #+#    #+# #+#    #+# #+#    #+# #+#   #+#+# ',13,10
+    db '  ########  ###     ### ###    ###  ########   ########  ###    #### ',13,10
+    db 13,10
+    db 'Sargon is a computer chess playing program designed and coded by Dan and',13,10
+    db 'Kathe Spracklen. Copyright 1978. All rights reserved. No part of this',13,10 
+    db 'publication may be reproduced without prior written permission.',13,10
+    db 13,10
+    db 'This version was ported to CP/M by John Squires in May 2021 specifically',13,10
+    db 'for the Z80 Playground. It is based on the assembler listing found at',13,10
+    db 'github.com/billforsternz/retro-sargon. See 8bitstack.co.uk for details.',13,10
+    db 13,10
+
+                                                                      
+                                                                      
+                                                                          db '$'
+                                                    
