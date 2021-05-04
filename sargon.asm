@@ -172,7 +172,7 @@ PIECES  EQU    0ACH ;  -84 ; $-TBASE             ; -84
 ;                     4 -- Rook
 ;                     5 -- Queen
 ;                     6 -- King
-;                     7 -- Not used
+;                     7 -- Not used     (actually this is "mated-king")
 ;                     0 -- Empty Square
 ;***********************************************************
 BOARD   EQU     0B4H ; -76 ; $-TBASE             ; -76
@@ -2376,7 +2376,7 @@ CPTRMV: CALL    FNDMOV          ; Select best move
         LD      (MLPTRJ),hl     ; Pointer to move data
         LD      a,(SCORE+1)     ; To check for mates
         CP      1               ; Mate against computer ?
-        JR      NZ,CP0C         ; No - jump
+        ;JR      NZ, CP0C        ; No - jump TODO PUT THIS BACK
         LD      c,1             ; Computer mate flag
         CALL    FCDMAT          ; Full checkmate ?
 CP0C:   CALL    MOVE            ; Produce move on board array
@@ -2419,7 +2419,7 @@ CP1C:   LD      a,(COLOR)       ; Should computer call check ?
         LD      hl,LINECT       ; Address of screen line count
         INC     (hl)            ; Increment for message
 CP24:   LD      a,(SCORE+1)     ; Check again for mates
-        CP      0FFH          ; Player mated ?
+        CP      0FFH            ; Player mated ?
         RET     NZ              ; No - return
         LD      c,0             ; Set player mate flag
         CALL    FCDMAT          ; Full checkmate ?
@@ -2448,11 +2448,11 @@ CP24:   LD      a,(SCORE+1)     ; Check again for mates
 FCDMAT: LD      a,(MOVENO)      ; Current move number
         LD      b,a             ; Save
         LD      a,(PMATE)       ; Move number where mate occurs
-        SUB     b             ; Number of moves till mate
-        AND     a             ; Checkmate ?
-        JP      NZ,FM0C         ; No - jump
+        SUB     b               ; Number of moves till mate
+        AND     a               ; Checkmate ?
+        ;JP      NZ,FM0C         ; No - jump
         BIT     0,c             ; Check flag for who is mated
-        JP      Z,FM04          ; Jump if player
+        ;JP      Z,FM04          ; Jump if player
         CARRET                  ; New line
         PRTLIN  CKMSG,9         ; Print "CHECKMATE"
         CALL    MATED           ; Tip over King
@@ -2820,8 +2820,9 @@ PGIFND: LD      hl,LINECT       ; Addr of page position counter
 ;
 ; ARGUMENTS:  --  None
 ;***********************************************************
-MATED:  LD      a,(KOLOR)       ; Computers color
-        AND     a             ; Is computer white ?
+MATED:  call    SAVE_CURSOR
+        LD      a,(KOLOR)       ; Computers color
+        AND     a               ; Is computer white ?
         JR      Z,rel23         ; Yes - skip
         LD      c,2             ; Set black piece flag
         LD      a,(POSK+1)      ; Position of black King
@@ -2830,22 +2831,16 @@ rel23:  LD      c,a             ; Clear black piece flag
         LD      a,(POSK)        ; Position of white King
 MA08:   LD      (BRDPOS),a      ; Store King position
         LD      (ANBDPS),a      ; Again
+
+        LD      (M1),a          ; Set up board index
+        LD      ix,(M1)
+        ld      a,7+128
+        LD      (ix+BOARD), a   ; Set mated king
+
         CALL    CONVRT          ; Getting norm address in HL
-        LD      a,7             ; Piece value of toppled King
-        LD      b,10            ; Blink parameter
-        CALL    BLNKER          ; Blink King position
-        LD      iy,MA0C         ; Prepare for abnormal call
-        PUSH    iy
-        PUSH    hl
-        PUSH    bc
-        PUSH    de
-        PUSH    ix
-        PUSH    af
-        JP      IP04            ; Call INSPCE
-MA0C:   LD      b,10            ; Blink again
-        LD      a,(ANBDPS)
-        LD      (BRDPOS),a
-        CALL    BLNKER
+        call    blink_square
+
+        call    RESTORE_CURSOR
         RET                     ; Return
 
 ;***********************************************************
@@ -2914,14 +2909,15 @@ AN08:   LD      (ANBDPS),a      ; Save
         LD      a,(ix+BOARD)    ; Get board contents
         CP      0FFH            ; Border square ?
         JR      Z,AN19          ; Yes - jump
-        LD      b,4H            ; Ready to blink square
-        CALL    BLNKER          ; Blink
+
+        call    blink_square
+
         CALL    CHARTR          ; Accept input
-        CP      1BH           ; Is it an escape ?
+        CP      1BH             ; Is it an escape ?
         JR      Z,AN1B          ; Yes - jump
-        CP      08H           ; Is it a backspace ?
+        CP      08H             ; Is it a backspace ?
         JR      Z,AN1A          ; Yes - jump
-        CP      0DH           ; Is it a carriage return ?
+        CP      0DH             ; Is it a carriage return ?
         JR      Z,AN19          ; Yes - jump
         LD      bc,7            ; Number of types of pieces + 1
         LD      hl,PCS          ; Address of piece symbol table
@@ -2929,12 +2925,12 @@ AN08:   LD      (ANBDPS),a      ; Save
         JR      NZ,AN18         ; Jump if not found
         CALL    CHARTR          ; Accept and ignore separator
         CALL    CHARTR          ; Color of piece
-        CP      42H           ; Is it black ?
+        CP      42H             ; Is it black ?
         JR      NZ,rel022       ; No - skip
         SET     7,c             ; Black piece indicator
 rel022: CALL    CHARTR          ; Accept and ignore separator
         CALL    CHARTR          ; Moved flag
-        CP      31H           ; Has piece moved ?
+        CP      31H             ; Has piece moved ?
         JR      NZ,AN18         ; No - jump
         SET     3,c             ; Set moved indicator
 AN18:   LD      (ix+BOARD),c    ; Insert piece into board array
@@ -2955,7 +2951,7 @@ AN1B:   PRTLIN  CRTNES,14       ; Ask if correct
         CP      4EH           ; Is it "N" ?
         JP      Z,AN04          ; No - jump
         CALL    ROYALT          ; Update positions of royalty
-        call CLRSCR                  ; Blank screen
+        call    CLRSCR                  ; Blank screen
         CALL    INTERR          ; Accept color choice
 AN1C:   PRTLIN  WSMOVE,17       ; Ask whose move it is
         CALL    CHARTR          ; Accept response
@@ -3016,80 +3012,6 @@ RY0C:   LD      a,(M1)          ; Current position
         CP      99            ; Done.?
         JR      NZ,RY04         ; No - jump
         RET                     ; Return
-
-;***********************************************************
-; SET UP EMPTY BOARD
-;***********************************************************
-; FUNCTION:   --  Display graphics board and pieces.
-;
-; CALLED BY:  --  DRIVER
-;                 ANALYS
-;                 PGIFND
-;
-; CALLS:      --  CONVRT
-;                 INSPCE
-;
-; ARGUMENTS:  --  None
-;
-; NOTES:      --  This routine makes use of several fixed
-;                 addresses in the video storage area of
-;                 the Jupiter III computer, and is therefor
-;                 system dependent. Each such reference will
-;                 be marked.
-;***********************************************************
-; TODO: Remove this routine
-DSPBRD_ORIGINAL: 
-        PUSH    bc              ; Save registers
-        PUSH    de
-        PUSH    hl
-        PUSH    af
-        call CLRSCR             ; Blank screen
-        LD      hl,0C000H       ; System Dependent-First video
-                                ; address
-        LD      (hl),80H        ; Start of blank border
-        LD      de,0C001H       ; Sys Dep- Next border square
-        LD      bc,15           ; Number of bytes to be moved
-        LDIR                    ; Blank border bar
-        LD      (hl),0AAH       ; First black border box
-        INC     l               ; Next block address
-        LD      b,6             ; Number to be moved
-DB04:   LD      (hl),80H        ; Create white block
-        INC     l               ; Next block address
-        DJNZ    DB04            ; Done ? No - jump
-        LD      b,6             ; Number of repeats
-DB08:   LD      (hl),0BFH       ; Create black box ???
-        INC     l               ; Next block address
-        DJNZ    DB08            ; Done ? No - jump
-        EX      de,hl           ; Get ready for block move
-        LD      bc,36           ; Bytes to be moved
-        LDIR                    ; Move - completes first bar
-        LD      hl,0C000H       ; S D - First addr to be copied
-        LD      bc,0D0H         ; Number of blocks to move
-        LDIR                    ; Completes first rank
-        LD      hl,0C016H       ; S D - Start of copy area
-        LD      bc,6            ; Number of blocks to move
-        LDIR                    ; First black square done
-        LD      hl,0C010H       ; S D - Start copy area
-        LD      bc,42           ; Bytes to be moved
-        LDIR                    ; Rest of bar done
-        LD      hl,0C100H       ; S D - Start of copy area
-        LD      bc,0C0H         ; Move three bars
-        LDIR                    ; Next rank done
-        LD      hl,0C000H       ; S D - Copy rest of screen
-        LD      bc,600H         ; Number of blocks
-        LDIR                    ; Board done
-BSETUP_original: LD      a,21            ; First board index
-BSET04_original: LD      (BRDPOS),a      ; Ready parameter
-        CALL    CONVRT          ; Norm addr into HL register
-        CALL    INSPCE          ; Insert that piece onto board
-        INC     a               ; Next square
-        CP      23 ;99              ; Done ?
-        JR      C,BSET04_original        ; No - jump
-        POP     af              ; Restore registers
-        POP     hl
-        POP     de
-        POP     bc
-        RET
 
 ; Letters and numbers around the edge of the board
 axis_table:
@@ -3292,6 +3214,8 @@ show_this_piece:
         jp z, show_queen
         cp  6
         jp z, show_king
+        cp  7
+        jp z, show_mated_king
         ld a, ' '
         call print_a
         call print_a
@@ -3391,6 +3315,19 @@ show_king:
         call show_string_de
         ret
 
+show_mated_king:
+        ld de, mated_king_codes1
+        call show_string_de
+        ld de, left5down
+        call show_string_de
+        ld de, mated_king_codes2
+        call show_string_de
+        ld de, left5down
+        call show_string_de
+        ld de, mated_king_codes3
+        call show_string_de
+        ret
+
 ; Assumes we have a code-pae 437 font!
 pawn_codes:
         db '     $'
@@ -3414,6 +3351,10 @@ queen_codes:
 king_codes1: db '  ',197,'  $'
 king_codes2: db ' ',219,219,219,' $'
 king_codes3: db ' ',222,219,221,' $'
+
+mated_king_codes1: db ' ',220,220,'  $'
+mated_king_codes2: db '+',219,219,219,219,'$'
+mated_king_codes3: db ' ',223,223,'  $'
 
 store_background_colour:
         ld      a, h
@@ -3446,9 +3387,6 @@ left5down:
         db 10,8,8,8,8,8,'$'
 five_spaces:
         db '     $'
-
-;piece_lookup:
-;        db 'PNBRQK'
 
 print_a_as_decimal:
     ; Prints a number (in a) from 0 to 255 in decimal
@@ -3494,110 +3432,6 @@ print_a_as_decimal_units1:
     add a, d
     call print_a
     ret
-
-
-;***********************************************************
-; INSERT PIECE SUBROUTINE
-;***********************************************************
-; FUNCTION:   --  This subroutine places a piece onto a
-;                 given square on the video board. The piece
-;                 inserted is that stored in the board array
-;                 for that square.
-;
-; CALLED BY:  --  DPSPRD
-;                 MATED
-;
-; CALLS:      --  MLTPLY
-;
-; ARGUMENTS:  --  Norm address for the square in register
-;                 pair HL.
-;***********************************************************
-; TODO: Remove this routine
-INSPCE: PUSH    hl              ; Save registers
-        PUSH    bc
-        PUSH    de
-        PUSH    ix
-        PUSH    af
-        LD      a,(BRDPOS)      ; Get board index
-        LD      (M1),a          ; Save
-        LD      ix,(M1)         ; Index into board array
-        LD      a,(ix+BOARD)    ; Contents of board array
-        AND     a             ; Is square empty ?
-        JR      Z,IP2C          ; Yes - jump
-        CP      0FFH          ; Is it a border square ?
-        JR      Z,IP2C          ; Yes - jump
-        LD      c,0             ; Clear flag register
-        BIT     7,a             ; Is piece white ?
-        JR      Z,IP04          ; Yes - jump
-        LD      c,2             ; Set black piece flag
-IP04:   AND     7             ; Delete flags, leave piece
-        DEC     a               ; Piece on a 0 - 5 basis
-        LD      e,a             ; Save
-        LD      d,16            ; Multiplier
-        CALL    MLTPLY          ; For loc of piece in table
-        LD      a,d             ; Displacement into block table
-        LD      (INDXER),a      ; Low order index byte
-        LD      ix,(INDXER)     ; Get entire index
-        BIT     0,(hl)          ; Is square white ?
-        JR      Z,IP08          ; Yes - jump
-        INC     c               ; Set complement flag
-IP08:   INC     l               ; Address of first alter block
-        PUSH    hl              ; Save
-        LD      d,0             ; Bar counter
-IP0C:   LD      b,4             ; Block counter
-
-IP10:   LD      a,(ix+BLOCK)    ; Bring in source block
-        BIT     0,c             ; Should it be complemented ?
-        JR      Z,IP14          ; No - jump
-        XOR     3FH           ; Graphics complement
-IP14:   LD      (hl),a          ; Store block
-        INC     l               ; Next block
-        INC     ix              ; Next source block
-        DJNZ    IP10            ; Done ? No - jump
-        LD      a,l             ; Bar increment
-        ADD     a,3CH
-        LD      l,a
-        INC     d               ; Bar counter
-        BIT     2,d             ; Done ?
-        JR      Z,IP0C          ; No - jump
-        POP     hl              ; Address of Norm + 1
-        BIT     0,c             ; Is square white ?
-        JR      NZ,IP18         ; No - jump
-        BIT     1,c             ; Is piece white ?
-        JR      NZ,IP2C         ; No - jump
-        JR      IP1C            ; Jump
-IP18:   BIT     1,c             ; Is piece white ?
-        JR      Z,IP2C          ; Yes - jump
-IP1C:   LD      d,6             ; Multiplier
-        CALL    MLTPLY          ; Multiply for displacement
-        LD      a,d             ; Kernel table displacement
-        LD      (INDXER),a      ; Save
-        LD      ix,(INDXER)     ; Get complete index
-        LD      a,l             ; Start of Kernel
-        ADD     a,40H
-        LD      l,a
-        LD      d,0             ; Bar counter
-IP20:   LD      b,3             ; Block counter
-IP24:   LD      a,(ix+KERNEL)   ; Kernel block
-        BIT     1,c             ; Need to complement ?
-        JR      NZ,IP28         ; No - jump
-        XOR     3FH           ; Graphics complement
-IP28:   LD      (hl),a          ; Store block
-        INC     l               ; Next target block
-        INC     ix              ; Next source block
-        DJNZ    IP24            ; Done ? No - jump
-        LD      a,l             ; Bar increment
-        ADD     a,3DH
-        LD      l,a
-        INC     d               ; Bar counter
-        BIT     1,d             ; Done ?
-        JR      Z,IP20          ; Repeat bar move
-IP2C:   POP     af              ; Restore registers
-        POP     ix
-        POP     de
-        POP     bc
-        POP     hl
-        RET
 
 ;***********************************************************
 ; BOARD INDEX TO NORM ADDRESS SUBR.
