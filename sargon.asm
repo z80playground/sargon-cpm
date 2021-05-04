@@ -2250,7 +2250,6 @@ DRIV01: CALL    CHARTR          ; Accept answer
         INC     hl
         LD      (hl),20H
         CALL    DSPBRD          ; Set up graphics board
-        jp 0
         PRTLIN  TITLE4,15       ; Put up player headings
         PRTLIN  TITLE3,15
 DRIV04: PRTBLK  MVENUM,3        ; Display move number
@@ -2913,7 +2912,7 @@ AN08:   LD      (ANBDPS),a      ; Save
         LD      (M1),a          ; Set up board index
         LD      ix,(M1)
         LD      a,(ix+BOARD)    ; Get board contents
-        CP      0FFH          ; Border square ?
+        CP      0FFH            ; Border square ?
         JR      Z,AN19          ; Yes - jump
         LD      b,4H            ; Ready to blink square
         CALL    BLNKER          ; Blink
@@ -3142,7 +3141,6 @@ DSPBRD2:
         LD      (BRDPOS),a      ; Ready parameter
         CALL    CONVRT          ; X-Y coords of square into HL register
         CALL    move_cursor_to_hl
-        xor     a               ; Clear "red background" flag
         CALL    display_piece
         LD      a, (BRDPOS)
         INC     a               ; Next square
@@ -3188,24 +3186,45 @@ move_cursor_to_hl:
     pop de
     ret
 
+; This draws a square of the board, but empty with a red background.
+; If is used in routines that "flash" one of the squares of the board.
+display_red_square:
+        PUSH    hl              ; Save registers
+        PUSH    bc
+        PUSH    de
+        PUSH    ix
+        PUSH    af
+        ld      de, red_background_codes
+        call    show_string_de
+        ld      de, five_spaces
+        call    show_string_de
+        ld      de, left5down
+        call    show_string_de
+        ld      de, five_spaces
+        call    show_string_de
+        ld      de, left5down
+        call    show_string_de
+        ld      de, five_spaces
+        call    show_string_de
+        jp      display_piece_done
+
 ; On entry to display_piece, the board location that
 ; we want to display must be in BRDPOS.
 ; Also, the x-y coords of the board location must be in hl.
-; And a = 1 if you want the background to be red.
+; And the cursor must be positioned where we want to draw the piece.
+; This routine draws the entire square and its content, so for an
+; empty square it draws an empty square of the required colour.
+; For a square with a piece in it draws the background of the square
+; and the piece as well.
+; If you request a red background it draws an empty square with a
+; red background.
 display_piece:
         PUSH    hl              ; Save registers
         PUSH    bc
         PUSH    de
         PUSH    ix
         PUSH    af
-        push    hl
-        ld      hl, BACKGROUND_COLOUR
-        ld      (hl), 2
-        pop     hl
-        cp      1               ; Was a=1 passed in?
-        jr      z, keep_background_red
         call    store_background_colour
-keep_background_red:        
         ld      a, 0
         ld      (FOREGROUND_COLOUR), a
         LD      a,(BRDPOS)      ; Get board index
@@ -3224,28 +3243,16 @@ keep_background_red:
         ld      (FOREGROUND_COLOUR), a
         pop     af
 wpiece:
-        AND     7               ; Delete flags, leave piece
-        dec     a               ; Piece on a 0 - 5 basis
-        ld      e, a
-        ld      d, 0
-        ld      hl, piece_lookup
-        add     hl, de
-        ld      a, (hl)
+        AND     7               ; Delete flags, leave piece (1 = pawn, 2 = Knight etc)
 disp_piece:
         ; By now we have the char in A, and the foreground and background colour is known
         push af
-
-        ;ld de, bold_attribute
-        ;call show_string_de
 
         ld de, white_background_codes
         ld a, (BACKGROUND_COLOUR)
         cp 1
         jr z, disp_piece1
         ld de, black_background_codes
-        cp 0
-        jr z, disp_piece1
-        ld de, red_background_codes
 disp_piece1:        
         call show_string_de
 
@@ -3258,29 +3265,7 @@ disp_piece2:
         call show_string_de
 
         pop af
-        call print_a
-        call print_a
-        call print_a
-        call print_a
-        call print_a
-        push af
-        ld de, left5down
-        call show_string_de
-        pop af
-        call print_a
-        call print_a
-        call print_a
-        call print_a
-        call print_a
-        push af
-        ld de, left5down
-        call show_string_de
-        pop af
-        call print_a
-        call print_a
-        call print_a
-        call print_a
-        call print_a
+        call show_this_piece
 display_piece_done
         ld de, normal_attribute
         call show_string_de
@@ -3293,6 +3278,142 @@ display_piece_done
 display_board_space:
         ld a, ' '
         jr disp_piece
+
+show_this_piece:
+        cp  1
+        jp z, show_pawn
+        cp  2
+        jp z, show_knight
+        cp  3
+        jp z, show_bishop
+        cp  4
+        jp z, show_rook
+        cp  5
+        jp z, show_queen
+        cp  6
+        jp z, show_king
+        ld a, ' '
+        call print_a
+        call print_a
+        call print_a
+        call print_a
+        call print_a
+        push af
+        ld de, left5down
+        call show_string_de
+        pop af
+        call print_a
+        call print_a
+        call print_a
+        call print_a
+        call print_a
+        push af
+        ld de, left5down
+        call show_string_de
+        pop af
+        call print_a
+        call print_a
+        call print_a
+        call print_a
+        call print_a
+        ret
+show_pawn:
+        ld de, pawn_codes
+        call show_string_de
+        ld de, left5down
+        call show_string_de
+        ld de, pawn_codes+6
+        call show_string_de
+        ld de, left5down
+        call show_string_de
+        ld de, pawn_codes+12
+        call show_string_de
+        ret
+
+show_knight:
+        ld de, knight_codes1
+        call show_string_de
+        ld de, left5down
+        call show_string_de
+        ld de, knight_codes2
+        call show_string_de
+        ld de, left5down
+        call show_string_de
+        ld de, knight_codes3
+        call show_string_de
+        ret
+show_bishop:
+        ld de, bishop_codes
+        call show_string_de
+        ld de, left5down
+        call show_string_de
+        ld de, bishop_codes+6
+        call show_string_de
+        ld de, left5down
+        call show_string_de
+        ld de, bishop_codes+12
+        call show_string_de
+        ret
+show_rook:
+        ld de, rook_codes
+        call show_string_de
+        ld de, left5down
+        call show_string_de
+        ld de, rook_codes+6
+        call show_string_de
+        ld de, left5down
+        call show_string_de
+        ld de, rook_codes+12
+        call show_string_de
+        ret
+show_queen:
+        ld de, queen_codes
+        call show_string_de
+        ld de, left5down
+        call show_string_de
+        ld de, queen_codes+6
+        call show_string_de
+        ld de, left5down
+        call show_string_de
+        ld de, queen_codes+12
+        call show_string_de
+        ret
+show_king:
+        ld de, king_codes1
+        call show_string_de
+        ld de, left5down
+        call show_string_de
+        ld de, king_codes2
+        call show_string_de
+        ld de, left5down
+        call show_string_de
+        ld de, king_codes3
+        call show_string_de
+        ret
+
+; Assumes we have a code-pae 437 font!
+pawn_codes:
+        db '     $'
+        db '  O  $'
+        db ' ',222,219,221,' $'
+knight_codes1: db '     $'
+knight_codes2:         db ' ',240,219,220,' $'
+knight_codes3:         db 244,219,219,221,' $'
+bishop_codes:
+        db '  o  $'
+        db ' (/) $'
+        db ' ',220,219,220,' $'
+rook_codes:
+        db '     $'
+        db ' ',221,221,221,' $'
+        db ' ',219,219,221,' $'
+queen_codes:
+        db '\\|//$'
+        db ' ',177,177,177,' $'
+        db ' ',219,219,219,' $'
+king_codes1: db '  ',197,'  $'
+king_codes2: db ' ',219,219,219,' $'
+king_codes3: db ' ',222,219,221,' $'
 
 store_background_colour:
         ld      a, h
@@ -3314,18 +3435,20 @@ black_background_codes:
 red_background_codes:
         db ESC,'[41m$'
 white_foreground_codes:
-        db ESC,'[37m$'
+        db ESC,'[37m',ESC,'[1m$'
 black_foreground_codes:
-        db ESC,'[30m$'
+        db ESC,'[30m',ESC,'[2m$'
 normal_attribute:
         db ESC,'[0m$'
 bold_attribute:
         db ESC,'[1m$'
 left5down:
-        db ESC,'D',ESC,'D',ESC,'D',ESC,'D',ESC,'D',ESC,'B$'
+        db 10,8,8,8,8,8,'$'
+five_spaces:
+        db '     $'
 
-piece_lookup:
-        db 'PNBRQK'
+;piece_lookup:
+;        db 'PNBRQK'
 
 print_a_as_decimal:
     ; Prints a number (in a) from 0 to 255 in decimal
@@ -3702,34 +3825,18 @@ MAKEMV: PUSH    af              ; Save register
         pop     bc
         pop     de
         push    de
+
         LD      a,c             ; "From" position
         LD      (BRDPOS),a      ; Set up parameter
         CALL    CONVRT          ; Getting Norm address in HL
-        push    hl
-        CALL    move_cursor_to_hl
-        ld      a, 1
-        CALL    display_piece
-        call    delay
-        pop     hl
-        CALL    move_cursor_to_hl
-        xor     a
-        CALL    display_piece
-        call    delay
+
+        call    blink_square
         pop     de
 
         LD      a,e             ; Get "to" position
         LD      (BRDPOS),a      ; Set up parameter
         CALL    CONVRT          ; Getting Norm address in HL
-        push    hl
-        CALL    move_cursor_to_hl
-        ld      a, 1
-        CALL    display_piece
-        call    delay
-        pop     hl
-        CALL    move_cursor_to_hl
-        xor     a
-        CALL    display_piece
-
+        call    blink_square
         call    RESTORE_CURSOR
         POP     hl              ; Restore registers
         POP     de
@@ -3737,8 +3844,26 @@ MAKEMV: PUSH    af              ; Save register
         POP     af
         RET                     ; Return
 
+blink_square:
+        ld      b, 5
+blink_square1:
+        push    bc
+        push    hl
+        CALL    move_cursor_to_hl
+        CALL    display_red_square
+        call    delay
+        pop     hl
+        push    hl
+        CALL    move_cursor_to_hl
+        CALL    display_piece
+        call    delay
+        pop     hl
+        pop     bc
+        djnz    blink_square1
+        ret
+
 delay:
-        ld      bc, 10000
+        ld      bc, 200
 more_delay:
         dec     bc
         push bc

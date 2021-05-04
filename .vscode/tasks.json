@@ -18,8 +18,8 @@
             "label": "copy_sargon",
             "type": "shell",
             "command": "copy",
-            //"args": ["C:\\z80 playground\\source\\jed\\jed.com", "d:\\cpm\\disks\\J\\"],
-            "args": ["C:\\z80 playground\\source\\sargon-cpm\\sargon.com", "c:\\runcpm\\runcpm\\debug\\A\\0\\"],
+            "args": ["C:\\z80 playground\\source\\sargon-cpm\\sargon.com", "d:\\cpm\\disks\\A\\"],
+            //"args": ["C:\\z80 playground\\source\\sargon-cpm\\sargon.com", "c:\\runcpm\\runcpm\\debug\\A\\0\\"],
             "problemMatcher": [],
             "group": "test",
             "presentation": {
@@ -31,6 +31,21 @@
                 "clear": true
             }
         },
-
+        {
+            "label": "eject_usb_d",
+            "type": "shell",
+            "command": "USB_Disk_Eject",
+            "args": ["/removeletter", "D"],
+            "problemMatcher": [],
+            "group": "test",
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared",
+                "showReuseMessage": true,
+                "clear": true
+            }
+        },
     ]
 }
