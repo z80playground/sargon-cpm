@@ -3031,8 +3031,9 @@ axis_table:
         db 67,25,'F'
         db 72,25,'G'
         db 77,25,'H'
+
+; This is the board drawing routine.
 DSPBRD:
-        ; This is my temporary hacked-together board drawing routine
         PUSH    bc              ; Save registers
         PUSH    de
         PUSH    hl
@@ -3328,7 +3329,7 @@ show_mated_king:
         call show_string_de
         ret
 
-; Assumes we have a code-pae 437 font!
+; Assumes we have a code-page 437 font!
 pawn_codes:
         db '     $'
         db '  O  $'
@@ -3520,62 +3521,6 @@ rel025: SRA     a
         RET
 
 ;***********************************************************
-; SQUARE BLINKER
-;***********************************************************
-;
-; FUNCTION:   --  To blink the graphics board square to signal
-;                 a piece's intention to move, or to high-
-;                 light the square as being alterable
-;                 in ANALYS.
-;
-; CALLED BY:  --  MAKEMV
-;                 ANALYS
-;                 MATED
-;
-; CALLS:      --  None
-;
-; ARGUMENTS:  --  Norm address of desired square passed in register
-;                 pair HL. Number of times to blink passed in
-;                 register B.
-;***********************************************************
-BLNKER: PUSH    af              ; Save registers
-        PUSH    bc
-        PUSH    de
-        PUSH    hl
-        PUSH    ix
-        LD      (NORMAD),hl     ; Save Norm address
-BL04:   LD      d,0             ; Bar counter
-BL08:   LD      c,0             ; Block counter
-BL0C:   LD      a,(hl)          ; Fetch block
-        XOR     3FH             ; Graphics complement
-        LD      (hl),a          ; Replace block
-        INC     l               ; Next block address
-        INC     c               ; Increment block counter
-        LD      a,c
-        CP      6               ; Done ?
-        JR      NZ,BL0C         ; No - jump
-        LD      a,l             ; Address
-        ADD     a,3AH           ; Adjust square position
-        LD      l,a             ; Replace address
-        INC     d               ; Increment bar counter
-        BIT     2,d             ; Done ?
-        JR      Z,BL08          ; No - jump
-        LD      hl,(NORMAD)     ; Get Norm address
-        PUSH    bc              ; Save register
-        LD      bc,3030H        ; Delay loop, for visibility
-BL10:   DJNZ    BL10
-        DEC     c
-        JR      NZ,BL10
-        POP     bc              ; Restore register
-        DJNZ    BL04            ; Done ? No - jump
-        POP     ix              ; Restore registers
-        POP     hl
-        POP     de
-        POP     bc
-        POP     af
-        RET                     ; Return
-
-;***********************************************************
 ; EXECUTE MOVE SUBROUTINE
 ;***********************************************************
 ; FUNCTION:   --  This routine is the control routine for
@@ -3723,17 +3668,17 @@ show_string_de:
         ret
 
 print_a:
-        push af
-        push bc
-        push de
-        push hl
-        ld  c, BDOS_Console_Output
-        ld  e, a
-        call BDOS
-        pop hl
-        pop de
-        pop bc
-        pop af
+        push    af
+        push    bc
+        push    de
+        push    hl
+        ld      c, BDOS_Console_Output
+        ld      e, a
+        call    BDOS
+        pop     hl
+        pop     de
+        pop     bc
+        pop     af
         ret
 
 CLRSCR:
