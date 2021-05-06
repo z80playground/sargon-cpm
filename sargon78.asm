@@ -2376,7 +2376,7 @@ CPTRMV: CALL    FNDMOV          ; Select best move
         LD      (MLPTRJ),hl     ; Pointer to move data
         LD      a,(SCORE+1)     ; To check for mates
         CP      1               ; Mate against computer ?
-        ;JR      NZ, CP0C        ; No - jump TODO PUT THIS BACK
+        JR      NZ, CP0C        ; No
         LD      c,1             ; Computer mate flag
         CALL    FCDMAT          ; Full checkmate ?
 CP0C:   CALL    MOVE            ; Produce move on board array
@@ -2450,9 +2450,9 @@ FCDMAT: LD      a,(MOVENO)      ; Current move number
         LD      a,(PMATE)       ; Move number where mate occurs
         SUB     b               ; Number of moves till mate
         AND     a               ; Checkmate ?
-        ;JP      NZ,FM0C         ; No - jump
+        JP      NZ,FM0C         ; No - jump
         BIT     0,c             ; Check flag for who is mated
-        ;JP      Z,FM04          ; Jump if player
+        JP      Z,FM04          ; Jump if player
         CARRET                  ; New line
         PRTLIN  CKMSG,9         ; Print "CHECKMATE"
         CALL    MATED           ; Tip over King

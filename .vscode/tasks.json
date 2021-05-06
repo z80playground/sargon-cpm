@@ -7,7 +7,7 @@
             "label": "Assemble Sargon",
             "type": "process",
             "command": "pasmo",
-            "args": ["--bin", "sargon.asm", "sargon.com", "sargon.symbols"],
+            "args": ["--bin", "sargon78.asm", "sargon78.com"],
             "problemMatcher": [],
             "group": {
                 "kind": "build",
@@ -18,8 +18,8 @@
             "label": "copy_sargon",
             "type": "shell",
             "command": "copy",
-            "args": ["C:\\z80 playground\\source\\sargon-cpm\\sargon.com", "d:\\cpm\\disks\\A\\"],
-            //"args": ["C:\\z80 playground\\source\\sargon-cpm\\sargon.com", "c:\\runcpm\\runcpm\\debug\\A\\0\\"],
+            "args": ["C:\\z80 playground\\source\\sargon-cpm\\sargon78.com", "d:\\cpm\\disks\\A\\"],
+            //"args": ["C:\\z80 playground\\source\\sargon-cpm\\sargon78.com", "c:\\runcpm\\runcpm\\debug\\A\\0\\"],
             "problemMatcher": [],
             "group": "test",
             "presentation": {
