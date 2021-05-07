@@ -12,3 +12,5 @@ I have improved the graphics, aiming them at a VT100 terminal with ANSI color.
 
 I hope you like it!
 
+If you are running CP/M v2.2 and have a VT100 terminal then grab SARGON78.COM and start playing!
+
