@@ -3360,7 +3360,7 @@ mated_king_codes3: db ' ',223,223,'  $'
 store_background_colour:
         ld      a, h
         xor     l
-        xor     255
+        ;xor     255
         and     1
         ld      (BACKGROUND_COLOUR), a
         ret
