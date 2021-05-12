@@ -10,7 +10,9 @@ So, this is my attempt at it.
 
 It turns out that this is Sargon version 1 rather than the (presumably better?) version 2.1 that is already available elsewhere. I have called it Sargon78 because of the Copyright message in the source, stating that it was written in 1978.
 
-I have improved the graphics, aiming them at a VT100 terminal with ANSI color.
+I have improved the graphics, aiming them at a VT100 terminal with ANSI color. It works fine in TeraTerm. If you are using Putty, make sure you set Code Page 437 and Unicode line drawing, and select a font such as Lucida Console:
+
+![Putty Settings](putty-settings.png)
 
 I hope you like it!
 
